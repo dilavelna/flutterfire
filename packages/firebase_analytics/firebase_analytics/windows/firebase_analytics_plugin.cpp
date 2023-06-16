@@ -16,7 +16,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-#include <Firebase/analytics.h>
+#include <firebase/analytics.h>
 
 #include <firebase_core/firebase_core_plugin_c_api.h>
 
@@ -76,28 +76,28 @@ void FirebaseAnalyticsPlugin::HandleMethodCall(
     result->Success(flutter::EncodableValue(version_stream.str()));
   }
   else if (method_call.method_name().compare("Analytics#logEvent") == 0) {
-    logEvent(arguments, result);
+    logEvent(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#setUserId") == 0) {
-    setUserId(arguments, result);
+    setUserId(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#setUserProperty") == 0){
-    setUserProperty(arguments, result);
+    setUserProperty(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#setAnalyticsCollectionEnabled") == 0) {
-    setAnalyticsCollectionEnabled(arguments, result);
+    setAnalyticsCollectionEnabled(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#resetAnalyticsData") == 0) {
-    resetAnalyticsData(arguments, result);
+    resetAnalyticsData(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#setConsent") == 0) {
-    setConsent(arguments, result);
+    setConsent(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#setDefaultEventParameters") == 0) {
-    setDefaultEventParameters(arguments, result);
+    setDefaultEventParameters(arguments, std::move(result));
   }
   else if (method_call.method_name().compare("Analytics#getAppInstanceId") == 0) {
-    getAppInstanceId(arguments, result);
+    getAppInstanceId(arguments, std::move(result));
   }
   else {
     result->NotImplemented();
