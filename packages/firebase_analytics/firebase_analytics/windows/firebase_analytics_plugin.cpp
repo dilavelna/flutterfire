@@ -17,12 +17,15 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-//#include <firebase/analytics.h>
+#include <firebase/analytics.h>
 
 //#include <firebase_core/firebase_core_plugin_c_api.h>
 
 #include <memory>
 #include <sstream>
+
+#pragma comment(lib, "firebase_app.lib")
+#pragma comment(lib, "firebase_analytics.lib")
 
 char* const kFLTFirebaseAnalyticsName = "name";
 char* const kFLTFirebaseAnalyticsValue = "value";
@@ -37,6 +40,81 @@ char* const FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analy
 
 
 namespace firebase_analytics {
+
+void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* eventName = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)));
+	/*const std::map<std::string, std::string>* parameterMap = std::get_if<std::map<std::string, std::string>>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)));
+	if (parameterMap != nullptr) {
+		std::vector<firebase::analytics::Parameter> params;
+		for (auto it = parameterMap->begin(); it != parameterMap->end(); ++it) {
+			params.push_back(firebase::analytics::Parameter(it->first.c_str(), firebase::Variant(it->second)));
+		}
+		firebase::analytics::LogEvent(eventName->c_str(), &params[0], params.size());
+	}
+	else {
+		firebase::analytics::LogEvent(eventName->c_str());
+	}*/
+
+	result->Success();
+}
+
+void  setUserId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* userId = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId)));
+	firebase::analytics::SetUserId(userId != nullptr ? userId->c_str() : nullptr);
+
+	result->Success();
+}
+
+void  setUserProperty(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* name = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));
+	const std::string* value = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue)));
+	firebase::analytics::SetUserProperty(name->c_str(), value != nullptr ? value->c_str() : nullptr);
+
+	result->Success();
+}
+
+void  setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const bool* enabled = std::get_if<bool>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEnabled)));
+	firebase::analytics::SetAnalyticsCollectionEnabled(*enabled);
+
+	result->Success();
+}
+
+void  resetAnalyticsData(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	firebase::analytics::ResetAnalyticsData();
+
+	result->Success();
+}
+
+void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const int* adStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsAdStorageConsentGranted)));
+	const int* analyticsStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsStorageConsentGranted)));
+	std::map<firebase::analytics::ConsentType, firebase::analytics::ConsentStatus> parameters;
+	if (adStorageGranted != nullptr) {
+		parameters[firebase::analytics::kConsentTypeAdStorage] =
+			adStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
+	}
+	if (analyticsStorageGranted != nullptr) {
+		parameters[firebase::analytics::kConsentTypeAnalyticsStorage] =
+			analyticsStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
+	}
+
+	firebase::analytics::SetConsent(parameters);
+
+	result->Success();
+}
+
+void  setDefaultEventParameters(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	//firebase::analytics::setDefaultEvent(args);
+
+	result->Success();
+}
+
+void  getAppInstanceId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* appInstanceID = firebase::analytics::GetAnalyticsInstanceId().result();
+
+	result->Success(appInstanceID);
+}
 // static
 void FirebaseAnalyticsPlugin::RegisterWithRegistrar(
 	flutter::PluginRegistrarWindows* registrar) {
@@ -106,76 +184,4 @@ void FirebaseAnalyticsPlugin::HandleMethodCall(
 	}
 }
 
-void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* eventName = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)));
-	const std::map<std::string, std::string>* parameterMap = std::get_if<std::map<std::string, std::string>>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)));
-	if (parameterMap != nullptr) {
-		for (auto it = parameterMap->begin(); it != parameterMap->end(); ++it) {
-			firebase::analytics::LogEvent(eventName, firebase::analytics::Parameter(it->first, it->second));
-		}
-	}
-	else {
-		firebase::analytics::LogEvent(eventName);
-	}
-
-	result->Success();
-}
-
-void  setUserId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* userId = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId)));
-	firebase::analytics::SetUserId(userId != nullptr ? userId->c_str() : nullptr);
-
-	result->Success();
-}
-
-void  setUserProperty(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* name = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));
-	const std::string* value = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue)));
-	firebase::analytics::SetUserProperty(name->c_str(), value != nullptr ? value->c_str() : nullptr);
-
-	result->Success();
-}
-
-void  setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const bool* enabled = std::get_if<bool>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEnabled)));
-	firebase::analytics::setAnalyticsCollectionEnabled(*enabled);
-
-	result->Success();
-}
-
-void  resetAnalyticsData(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	firebase::analytics::resetAnalyticsData();
-
-	result->Success();
-}
-
-void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const int* adStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsAdStorageConsentGranted)));
-	const int* analyticsStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsStorageConsentGranted)));
-	std::map<firebase::analytics::ConsentType, firebase::analytics::ConsentStatus> parameters;
-	if (adStorageGranted != nullptr) {
-		parameters[firebase::analytics::kConsentTypeAdStorage] =
-			adStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
-	}
-	if (analyticsStorageGranted != nullptr) {
-		parameters[firebase::analytics::kConsentTypeAnalyticsStorage] =
-			analyticsStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
-	}
-
-	firebase::analytics::setConsent(parameters);
-
-	result->Success();
-}
-
-void  setDefaultEventParameters(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	//firebase::analytics::setDefaultEventParameters:arguments;
-
-	result->Success();
-}
-
-void  getAppInstanceId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	std::string appInstanceID = firebase::analytics::GetAnalyticsInstanceId().wait().get();
-
-	result->Success(appInstanceID);
-}
 }  // namespace firebase_analytics
