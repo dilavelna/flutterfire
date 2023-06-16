@@ -19,7 +19,6 @@
 
 #include <firebase/analytics.h>
 
-//#include <firebase_core/firebase_core_plugin_c_api.h>
 
 #include <memory>
 #include <sstream>
