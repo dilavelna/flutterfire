@@ -105,70 +105,72 @@ void FirebaseAnalyticsPlugin::HandleMethodCall(
 
   
 void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  std::string eventName = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName))); 
-  id parameterMap = arguments[kFLTFirebaseAnalyticsParameters];
-
-  if (parameterMap != [NSNull null]) {
-    firebase::analytics::logEventWithName:eventName parameters:parameterMap;
+  std::string* eventName = std::get_if<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName))); 
+  auto parameterMap = std::get_if<int64_t>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsParameters))) ;
+  if (parameterMap != null) {
+    firebase::analytics::LogEvent(eventName, Parameter(parameters));
   } else {
-    firebase::analytics::logEventWithName:eventName parameters:nil;
+    firebase::analytics::LogEvent(eventName);
   }
 
   result->Success();
 }
 
 void  setUserId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  std::string userId = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId))); 
-  firebase::analytics::setUserID:[userId isKindOfClass:[NSNull class]] ? nil : userId;
+  std::string* userId = std::get_if<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId))); 
+  firebase::analytics::SetUserId(userId != null ? userId.c_str() : null);
 
   result->Success();
 }
 
 void  setUserProperty(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  std::string name = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));  
-  std::string value = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue))); 
-  firebase::analytics::setUserPropertyString:[value isKindOfClass:[NSNull class]] ? nil : value
-                              forName:name;
+  std::string* name = std::get_if<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));  
+  std::string* value = std::get_if<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue))); 
+  firebase::analytics::SetUserProperty(name.c_str(), value.c_str());
+
   result->Success();
 }
 
 void  setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  NSNumber *enabled = arguments[kFLTFirebaseAnalyticsEnabled];
-  firebase::analytics::setAnalyticsCollectionEnabled:[enabled boolValue];
-   result->Success();
+  int* enabled = std::get_if<bool>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEnabled)));  
+  firebase::analytics::setAnalyticsCollectionEnabled(*enabled);
+
+  result->Success();
 }
 
 void  resetAnalyticsData(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  firebase::analytics::resetAnalyticsData;
+  firebase::analytics::resetAnalyticsData();
+
   result->Success();
 }
 
 void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  NSNumber *adStorageGranted = arguments[kFLTFirebaseAnalyticsAdStorageConsentGranted];
-  NSNumber *analyticsStorageGranted = arguments[kFLTFirebaseAnalyticsStorageConsentGranted];
-  NSMutableDictionary<FIRConsentType, FIRConsentStatus> *parameters =
-      [[NSMutableDictionary alloc] init];
-
+  int* adStorageGranted =  std::get_if<int>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsAdStorageConsentGranted)));  
+  int* analyticsStorageGranted = std::get_if<int>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsStorageConsentGranted)));  
+  std::map<ConsentType, ConsentStatus> parameters;
   if (adStorageGranted != nil) {
-    parameters[FIRConsentTypeAdStorage] =
-        [adStorageGranted boolValue] ? FIRConsentStatusGranted : FIRConsentStatusDenied;
+    parameters[firebase::analytics::kConsentTypeAdStorage] =
+        adStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
   }
   if (analyticsStorageGranted != nil) {
-    parameters[FIRConsentTypeAnalyticsStorage] =
-        [analyticsStorageGranted boolValue] ? FIRConsentStatusGranted : FIRConsentStatusDenied;
+    parameters[firebase::analytics::kConsentTypeAnalyticsStorage] =
+        analyticsStorageGranted != 0 ? firebase::analytics::kConsentStatusGranted : firebase::analytics::kConsentStatusDenied;
   }
 
-  firebase::analytics::setConsent:parameters;
+  firebase::analytics::setConsent(parameters);
+
   result->Success();
 }
 
 void  setDefaultEventParameters(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  firebase::analytics::setDefaultEventParameters:arguments;
+  //firebase::analytics::setDefaultEventParameters:arguments;
+
   result->Success();
 }
 
 void  getAppInstanceIdWithMethodCallResult:std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  std::string *appInstanceID = firebase::analytics::appInstanceID;
+  std::string appInstanceID = firebase::analytics::GetAnalyticsInstanceId().wait().get();
+
   result->Success(appInstanceID);
 }
 
