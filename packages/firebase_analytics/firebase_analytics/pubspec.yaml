@@ -35,5 +35,7 @@ flutter:
         pluginClass: FLTFirebaseAnalyticsPlugin
       macos:
         pluginClass: FLTFirebaseAnalyticsPlugin
+      windows:
+        pluginClass: FLTFirebaseAnalyticsPlugin
       web:
         default_package: firebase_analytics_web
