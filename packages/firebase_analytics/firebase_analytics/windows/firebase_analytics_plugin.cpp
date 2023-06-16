@@ -16,8 +16,23 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <Firebase/Firebase.h>
+
+#include <firebase_core/FLTFirebasePluginRegistry.h>
+
 #include <memory>
 #include <sstream>
+
+char *const kFLTFirebaseAnalyticsName = "name";
+char *const kFLTFirebaseAnalyticsValue = "value";
+char *const kFLTFirebaseAnalyticsEnabled = "enabled";
+char *const kFLTFirebaseAnalyticsEventName = "eventName";
+char *const kFLTFirebaseAnalyticsParameters = "parameters";
+char *const kFLTFirebaseAnalyticsAdStorageConsentGranted = "adStorageConsentGranted";
+char *const kFLTFirebaseAnalyticsStorageConsentGranted = "analyticsStorageConsentGranted";
+char *const kFLTFirebaseAnalyticsUserId = "userId";
+
+char *const FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analytics";
 
 // Big Thanks to Qv2ray opensource project
 std::string encodeableMapToString(const flutter::EncodableMap* args){
@@ -52,6 +67,7 @@ FirebaseAnalyticsPlugin::~FirebaseAnalyticsPlugin() {}
 void FirebaseAnalyticsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  auto* arguments = std::get_if<flutter::EncodableMap>(method_call.arguments());
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
     std::ostringstream version_stream;
     version_stream << "Windows ";
@@ -64,23 +80,102 @@ void FirebaseAnalyticsPlugin::HandleMethodCall(
     }
     result->Success(flutter::EncodableValue(version_stream.str()));
   }
-  else if (method_call.method_name().compare("cleanSystemProxy") == 0) {
-      //cleanSystemProxy();
-      result->Success();
+  else if (method_call.method_name().compare("Analytics#logEvent") == 0) {
+      logEvent(arguments, result);
   }
-  else if (method_call.method_name().compare("setSystemProxy") == 0) {
-      auto* arguments = std::get_if<flutter::EncodableMap>(method_call.arguments());
-      //setSystemProxy(arguments);
-      result->Success();
+  else if (method_call.method_name().compare("Analytics#setUserId") == 0) {
+      setUserId(arguments, result);
   }
-  else if (method_call.method_name().compare("getSystemProxyEnable") == 0){
-      auto* arguments = std::get_if<flutter::EncodableMap>(method_call.arguments());
-      bool enable = false;//getSystemProxyEnable(arguments);
-      result->Success(flutter::EncodableValue(enable ? "true" : "false"));
+  else if (method_call.method_name().compare("Analytics#setUserProperty") == 0){
+      setUserProperty(arguments, result);
+  }
+  else if (method_call.method_name().compare("Analytics#setAnalyticsCollectionEnabled") == 0) {
+      setAnalyticsCollectionEnabled(arguments, result);
+  }
+  else if (method_call.method_name().compare("Analytics#resetAnalyticsData") == 0) {
+      resetAnalyticsData(arguments, result);
+  }
+  else if (method_call.method_name().compare("Analytics#setConsent") == 0) {
+      setConsent(arguments, result);
+  }
+  else if (method_call.method_name().compare("Analytics#setDefaultEventParameters") == 0) {
+      setDefaultEventParameters(arguments, result);
+  }
+  else if (method_call.method_name().compare("Analytics#getAppInstanceId") == 0) {
+      getAppInstanceId(arguments, result);
   }
   else {
     result->NotImplemented();
   }
+
+  
+void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string eventName = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName))); 
+  id parameterMap = arguments[kFLTFirebaseAnalyticsParameters];
+
+  if (parameterMap != [NSNull null]) {
+    FIRAnalytics::logEventWithName:eventName parameters:parameterMap;
+  } else {
+    FIRAnalytics::logEventWithName:eventName parameters:nil;
+  }
+
+  result->Success();
 }
+
+void  setUserId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string userId = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId))); 
+  FIRAnalytics::setUserID:[userId isKindOfClass:[NSNull class]] ? nil : userId;
+
+  result->Success();
+}
+
+void  setUserProperty(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string name = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));  
+  std::string value = std::get<std::string>(args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue))); 
+  FIRAnalytics::setUserPropertyString:[value isKindOfClass:[NSNull class]] ? nil : value
+                              forName:name;
+  result->Success();
+}
+
+void  setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  NSNumber *enabled = arguments[kFLTFirebaseAnalyticsEnabled];
+  FIRAnalytics::setAnalyticsCollectionEnabled:[enabled boolValue];
+   result->Success();
+}
+
+void  resetAnalyticsData(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  FIRAnalytics::resetAnalyticsData;
+  result->Success();
+}
+
+void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  NSNumber *adStorageGranted = arguments[kFLTFirebaseAnalyticsAdStorageConsentGranted];
+  NSNumber *analyticsStorageGranted = arguments[kFLTFirebaseAnalyticsStorageConsentGranted];
+  NSMutableDictionary<FIRConsentType, FIRConsentStatus> *parameters =
+      [[NSMutableDictionary alloc] init];
+
+  if (adStorageGranted != nil) {
+    parameters[FIRConsentTypeAdStorage] =
+        [adStorageGranted boolValue] ? FIRConsentStatusGranted : FIRConsentStatusDenied;
+  }
+  if (analyticsStorageGranted != nil) {
+    parameters[FIRConsentTypeAnalyticsStorage] =
+        [analyticsStorageGranted boolValue] ? FIRConsentStatusGranted : FIRConsentStatusDenied;
+  }
+
+  FIRAnalytics::setConsent:parameters;
+  result->Success();
+}
+
+void  setDefaultEventParameters(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  FIRAnalytics::setDefaultEventParameters:arguments;
+  result->Success();
+}
+
+void  getAppInstanceIdWithMethodCallResult:std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string *appInstanceID = FIRAnalytics::appInstanceID;
+  result->Success(appInstanceID);
+}
+
 
 }  // namespace firebase_analytics

@@ -25,6 +25,15 @@ class FirebaseAnalyticsPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+ void logEvent(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) ;
+ void setUserId(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) ;
+ void setUserProperty(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+ void setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+ void resetAnalyticsData(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) ;
+ void setConsent(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+ void setDefaultEventParameters(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) ;
+ void getAppInstanceId(const flutter::EncodableMap* args,std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 };
 
 }  // namespace firebase_analytics
