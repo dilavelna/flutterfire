@@ -81,28 +81,28 @@ void FirebaseAnalyticsPlugin::HandleMethodCall(
     result->Success(flutter::EncodableValue(version_stream.str()));
   }
   else if (method_call.method_name().compare("Analytics#logEvent") == 0) {
-      logEvent(arguments, result);
+    logEvent(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#setUserId") == 0) {
-      setUserId(arguments, result);
+    setUserId(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#setUserProperty") == 0){
-      setUserProperty(arguments, result);
+    setUserProperty(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#setAnalyticsCollectionEnabled") == 0) {
-      setAnalyticsCollectionEnabled(arguments, result);
+    setAnalyticsCollectionEnabled(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#resetAnalyticsData") == 0) {
-      resetAnalyticsData(arguments, result);
+    resetAnalyticsData(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#setConsent") == 0) {
-      setConsent(arguments, result);
+    setConsent(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#setDefaultEventParameters") == 0) {
-      setDefaultEventParameters(arguments, result);
+    setDefaultEventParameters(arguments, result);
   }
   else if (method_call.method_name().compare("Analytics#getAppInstanceId") == 0) {
-      getAppInstanceId(arguments, result);
+    getAppInstanceId(arguments, result);
   }
   else {
     result->NotImplemented();
