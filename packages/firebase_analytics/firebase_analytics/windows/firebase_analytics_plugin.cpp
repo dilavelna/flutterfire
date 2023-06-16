@@ -17,14 +17,12 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-#include <firebase/analytics.h>
+#include "firebase/analytics.h"
 
 
 #include <memory>
 #include <sstream>
 
-#pragma comment(lib, "firebase_app.lib")
-#pragma comment(lib, "firebase_analytics.lib")
 
 char* const kFLTFirebaseAnalyticsName = "name";
 char* const kFLTFirebaseAnalyticsValue = "value";
@@ -41,7 +39,7 @@ char* const FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analy
 namespace firebase_analytics {
 
 void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* eventName = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)));
+	//const std::string* eventName = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)));
 	/*const std::map<std::string, std::string>* parameterMap = std::get_if<std::map<std::string, std::string>>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)));
 	if (parameterMap != nullptr) {
 		std::vector<firebase::analytics::Parameter> params;
