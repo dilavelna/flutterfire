@@ -34,12 +34,7 @@ char *const kFLTFirebaseAnalyticsUserId = "userId";
 
 char *const FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analytics";
 
-// Big Thanks to Qv2ray opensource project
-std::string encodeableMapToString(const flutter::EncodableMap* args){
-    auto proxy = std::get<std::string>(args->at(flutter::EncodableValue("proxy")));
-    return proxy;
-}
- 
+
 namespace firebase_analytics {
 
 // static
