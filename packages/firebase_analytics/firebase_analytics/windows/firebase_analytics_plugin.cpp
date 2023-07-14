@@ -24,68 +24,113 @@
 #include <sstream>
 
 
-char* const kFLTFirebaseAnalyticsName = "name";
-char* const kFLTFirebaseAnalyticsValue = "value";
-char* const kFLTFirebaseAnalyticsEnabled = "enabled";
-char* const kFLTFirebaseAnalyticsEventName = "eventName";
-char* const kFLTFirebaseAnalyticsParameters = "parameters";
-char* const kFLTFirebaseAnalyticsAdStorageConsentGranted = "adStorageConsentGranted";
-char* const kFLTFirebaseAnalyticsStorageConsentGranted = "analyticsStorageConsentGranted";
-char* const kFLTFirebaseAnalyticsUserId = "userId";
+const char* kFLTFirebaseAnalyticsName = "name";
+const char* kFLTFirebaseAnalyticsValue = "value";
+const char* kFLTFirebaseAnalyticsEnabled = "enabled";
+const char* kFLTFirebaseAnalyticsEventName = "eventName";
+const char* kFLTFirebaseAnalyticsParameters = "parameters";
+const char* kFLTFirebaseAnalyticsAdStorageConsentGranted = "adStorageConsentGranted";
+const char* kFLTFirebaseAnalyticsStorageConsentGranted = "analyticsStorageConsentGranted";
+const char* kFLTFirebaseAnalyticsUserId = "userId";
 
-char* const FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analytics";
+const char* FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analytics";
 
 
 namespace firebase_analytics {
 
-void  logEvent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	//const std::string* eventName = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)));
-	/*const std::map<std::string, std::string>* parameterMap = std::get_if<std::map<std::string, std::string>>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)));
+void  logEvent(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* eventName = std::get_if<std::string>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)]);
+	const flutter::EncodableMap* parameterMap = std::get_if<flutter::EncodableMap>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)]);
 	if (parameterMap != nullptr) {
 		std::vector<firebase::analytics::Parameter> params;
 		for (auto it = parameterMap->begin(); it != parameterMap->end(); ++it) {
-			params.push_back(firebase::analytics::Parameter(it->first.c_str(), firebase::Variant(it->second)));
+			std::string key;
+			firebase::Variant var;
+			if (!std::holds_alternative<std::string>(it->first)) {
+				continue;
+		    }
+			key = std::get<std::string>(it->first);
+			if (std::holds_alternative<std::monostate>(it->second)) {
+				var = firebase::Variant("null");
+			} 
+			else if (std::holds_alternative<bool>(it->second)) {
+				var = firebase::Variant(std::get<bool>(it->second));
+			}
+			else if (std::holds_alternative<int32_t>(it->second)) {
+				var = firebase::Variant(std::get<int32_t>(it->second));
+			}
+			else if (std::holds_alternative<int64_t>(it->second)) {
+				var = firebase::Variant(std::get<int64_t>(it->second));
+			}
+			else if (std::holds_alternative<double>(it->second)) {
+				var = firebase::Variant(std::get<double>(it->second));
+			}
+			else if (std::holds_alternative<std::string>(it->second)) {
+				var = firebase::Variant(std::get<std::string>(it->second));
+			}
+			else if (std::holds_alternative<std::vector<uint8_t>>(it->second)) {
+				var = firebase::Variant(std::get<std::vector<uint8_t>>(it->second));
+			}
+			else if (std::holds_alternative<std::vector<int32_t>>(it->second)) {
+				var = firebase::Variant(std::get<std::vector<int32_t>>(it->second));
+			}
+			else if (std::holds_alternative<std::vector<int64_t>>(it->second)) {
+				var = firebase::Variant(std::get<std::vector<int64_t>>(it->second));
+			}
+			else if (std::holds_alternative<std::vector<float>>(it->second)) {
+				var = firebase::Variant(std::get<std::vector<float>>(it->second));
+			}
+			else if (std::holds_alternative<std::vector<double>>(it->second)) {
+				var = firebase::Variant(std::get<std::vector<double>>(it->second));
+			}
+			else if (std::holds_alternative<flutter::EncodableList>(it->second)) {
+				//var = firebase::Variant(std::get<lutter::EncodableList>(it->second));
+			}
+			else if (std::holds_alternative<flutter::EncodableMap>(it->second)) {
+				//var = firebase::Variant(std::get<flutter::EncodableMap>(it->second));
+			}
+			params.push_back(firebase::analytics::Parameter(key.c_str(), var));
 		}
 		firebase::analytics::LogEvent(eventName->c_str(), &params[0], params.size());
 	}
 	else {
 		firebase::analytics::LogEvent(eventName->c_str());
-	}*/
+	}
 
 	result->Success();
 }
 
-void  setUserId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* userId = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsUserId)));
+void  setUserId(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* userId = std::get_if<std::string>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsUserId)]);
 	firebase::analytics::SetUserId(userId != nullptr ? userId->c_str() : nullptr);
 
 	result->Success();
 }
 
-void  setUserProperty(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const std::string* name = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsName)));
-	const std::string* value = std::get_if<std::string>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsValue)));
+void  setUserProperty(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const std::string* name = std::get_if<std::string>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsName)]);
+	const std::string* value = std::get_if<std::string>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsValue)]);
 	firebase::analytics::SetUserProperty(name->c_str(), value != nullptr ? value->c_str() : nullptr);
 
 	result->Success();
 }
 
-void  setAnalyticsCollectionEnabled(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const bool* enabled = std::get_if<bool>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsEnabled)));
+void  setAnalyticsCollectionEnabled(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const bool* enabled = std::get_if<bool>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsEnabled)]);
 	firebase::analytics::SetAnalyticsCollectionEnabled(*enabled);
 
 	result->Success();
 }
 
-void  resetAnalyticsData(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void  resetAnalyticsData(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 	firebase::analytics::ResetAnalyticsData();
 
 	result->Success();
 }
 
-void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	const int* adStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsAdStorageConsentGranted)));
-	const int* analyticsStorageGranted = std::get_if<int>(&args->at(flutter::EncodableValue(kFLTFirebaseAnalyticsStorageConsentGranted)));
+void  setConsent(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+	const int* adStorageGranted = std::get_if<int>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsAdStorageConsentGranted)]);
+	const int* analyticsStorageGranted = std::get_if<int>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsStorageConsentGranted)]);
 	std::map<firebase::analytics::ConsentType, firebase::analytics::ConsentStatus> parameters;
 	if (adStorageGranted != nullptr) {
 		parameters[firebase::analytics::kConsentTypeAdStorage] =
@@ -101,13 +146,13 @@ void  setConsent(const flutter::EncodableMap* args, std::unique_ptr<flutter::Met
 	result->Success();
 }
 
-void  setDefaultEventParameters(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void  setDefaultEventParameters(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 	//firebase::analytics::setDefaultEvent(args);
 
 	result->Success();
 }
 
-void  getAppInstanceId(const flutter::EncodableMap* args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void  getAppInstanceId(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 	const std::string* appInstanceID = firebase::analytics::GetAnalyticsInstanceId().result();
 
 	result->Success(appInstanceID);
@@ -137,7 +182,7 @@ FirebaseAnalyticsPlugin::~FirebaseAnalyticsPlugin() {}
 void FirebaseAnalyticsPlugin::HandleMethodCall(
 	const flutter::MethodCall<flutter::EncodableValue>& method_call,
 	std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-	auto* arguments = std::get_if<flutter::EncodableMap>(method_call.arguments());
+	auto arguments = std::get<flutter::EncodableMap>(*method_call.arguments());
 	if (method_call.method_name().compare("getPlatformVersion") == 0) {
 		std::ostringstream version_stream;
 		version_stream << "Windows ";
