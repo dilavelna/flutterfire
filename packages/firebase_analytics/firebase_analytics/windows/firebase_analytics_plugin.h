@@ -4,7 +4,7 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
-
+#include "firebase/app.h"
 #include <memory>
 
 namespace firebase_analytics {
@@ -26,6 +26,8 @@ class FirebaseAnalyticsPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  firebase::App* _app = nullptr;
 };
 
 }  // namespace firebase_analytics

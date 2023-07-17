@@ -175,9 +175,20 @@ void FirebaseAnalyticsPlugin::RegisterWithRegistrar(
 	registrar->AddPlugin(std::move(plugin));
 }
 
-FirebaseAnalyticsPlugin::FirebaseAnalyticsPlugin() {}
+FirebaseAnalyticsPlugin::FirebaseAnalyticsPlugin() {
+	firebase::AppOptions options;
+	options.set_app_id("1:415726192685:web:20b0c8125954eaf89e50a4");
+	options.set_api_key("AIzaSyASrRzd6Bnnl3EOYGA0F8iZZB-uzPhoP7U");
+	options.set_messaging_sender_id("415726192685");
+	options.set_storage_bucket("clashpro-26cef.appspot.com");
+	options.set_project_id("clashpro-26cef");
+	_app = firebase::App::Create(options);
+	firebase::analytics::Initialize(*_app);
+}
 
-FirebaseAnalyticsPlugin::~FirebaseAnalyticsPlugin() {}
+FirebaseAnalyticsPlugin::~FirebaseAnalyticsPlugin() {
+	firebase::analytics::Terminate();
+}
 
 void FirebaseAnalyticsPlugin::HandleMethodCall(
 	const flutter::MethodCall<flutter::EncodableValue>& method_call,
