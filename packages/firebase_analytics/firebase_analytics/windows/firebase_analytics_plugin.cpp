@@ -7,6 +7,7 @@
 #include <RasError.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <variant>
 
 
@@ -17,12 +18,13 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include "firebase/log.h"
 #include "firebase/analytics.h"
 
 
 #include <memory>
 #include <sstream>
-
+ 
 
 const char* kFLTFirebaseAnalyticsName = "name";
 const char* kFLTFirebaseAnalyticsValue = "value";
@@ -37,7 +39,26 @@ const char* FLTFirebaseAnalyticsChannelName = "plugins.flutter.io/firebase_analy
 
 
 namespace firebase_analytics {
+	std::vector<std::string> split(const std::string& s, char seperator)
+	{
+		std::vector<std::string> output;
 
+		std::string::size_type prev_pos = 0, pos = 0;
+
+		while ((pos = s.find(seperator, pos)) != std::string::npos)
+		{
+			std::string substring(s.substr(prev_pos, pos - prev_pos));
+
+			output.push_back(substring);
+
+			prev_pos = ++pos;
+		}
+
+		output.push_back(s.substr(prev_pos, pos - prev_pos)); // Last word
+
+		return output;
+	}
+	
 void  logEvent(flutter::EncodableMap& args, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
 	const std::string* eventName = std::get_if<std::string>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsEventName)]);
 	const flutter::EncodableMap* parameterMap = std::get_if<flutter::EncodableMap>(&args[flutter::EncodableValue(kFLTFirebaseAnalyticsParameters)]);
@@ -176,12 +197,28 @@ void FirebaseAnalyticsPlugin::RegisterWithRegistrar(
 }
 
 FirebaseAnalyticsPlugin::FirebaseAnalyticsPlugin() {
+	wchar_t path[MAX_PATH] = {0};
+	GetModuleFileName(NULL, path, MAX_PATH);
+	wcscat_s(path, MAX_PATH, L"/../data/flutter_assets/google-services.conf");
+	std::ifstream ifs;
+	ifs.open(path);
+	std::string content((std::istreambuf_iterator<char>(ifs)),
+		(std::istreambuf_iterator<char>()));
+	ifs.close();
+
+	//project_id;app_id;api_key;message_sender_id;storage_bucket;
+	std::vector<std::string> attris = split(content, ';');
+	if (attris.size() < 5 || attris.size() > 6) {
+		assert("attris.size() < 5 || attris.size() > 6");
+		return;
+	}
 	firebase::AppOptions options;
-	options.set_app_id("1:415726192685:web:20b0c8125954eaf89e50a4");
-	options.set_api_key("AIzaSyASrRzd6Bnnl3EOYGA0F8iZZB-uzPhoP7U");
-	options.set_messaging_sender_id("415726192685");
-	options.set_storage_bucket("clashpro-26cef.appspot.com");
-	options.set_project_id("clashpro-26cef");
+	options.set_project_id(attris[0].c_str());
+	options.set_app_id(attris[1].c_str());
+	options.set_api_key(attris[2].c_str());
+	options.set_messaging_sender_id(attris[3].c_str());
+	options.set_storage_bucket(attris[4].c_str());
+	
 	_app = firebase::App::Create(options);
 	firebase::analytics::Initialize(*_app);
 }
